@@ -51,6 +51,18 @@ export const updateProfilePicture = async (body: any) => {
 }
 
 export const gainXp = async (body: any) => {
+
+    const gain = await db.user.update({
+        where: {
+            userId: body.userId
+        },
+        data: {
+            xp: {
+                increment: body.xp
+            }
+        }
+    })
+
     const data = await getUser(body.userId);
     // @ts-ignore
     let xp = data.currentXp + body.xp;

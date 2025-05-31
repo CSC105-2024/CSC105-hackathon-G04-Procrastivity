@@ -21,6 +21,7 @@ model User {
   profilePicture     String
   maxXp              Int     @default(10)
   currentXp          Int     @default(0)
+  xp                 Int     @default(0)
   rank               String  @default("Iron")
   maxRank            Boolean @default(false)
   taskCompleted      Int     @default(0)
