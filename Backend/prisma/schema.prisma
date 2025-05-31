@@ -25,9 +25,11 @@ model User {
 model Task {
   taskId         Int       @id @default(autoincrement())
   title          String
+  category       String    @default("")
   completed      Boolean   @default(false)
   procrastinated Boolean   @default(false)
-  dueDate        Int
+  dueDate        String
+  dueIn          Int
   userId         Int
   user           User      @relation(fields: [userId], references: [userId])
   subTask        subTask[]
@@ -37,7 +39,8 @@ model subTask {
   subTaskId  Int     @id @default(autoincrement())
   title      String
   completed  Boolean @default(false)
-  dueDate    Int
+  dueDate    String
+  dueIn      Int
   mainTaskId Int
   task       Task    @relation(fields: [mainTaskId], references: [taskId])
 }

@@ -1,32 +1,26 @@
 import type { Context } from "hono";
 // @ts-ignore
-import * as userModel from "../models/userModel.ts";
+import * as taskModel from "../models/taskModel.ts";
 
-type createUser = {
-    username: string,
-    password: string,
-    profilePicture: string
-}
-
-type updateUsername = {
+type createTask = {
     userId: number,
-    username: string,
+    title: string,
+    dueDate: string
 }
 
-type updateProfilePicture = {
+type getTask = {
     userId: number,
-    profilePicture: string,
+    category?: string,
 }
 
-type updateXp = {
-    userId: number,
-    xp: number,
+type updateTask = {
+    taskId: number
 }
 
-export const createUser = async (c: Context) => {
+export const createTask = async (c: Context) => {
     try {
-        const body = await c.req.json<createUser>();
-        if (!body.username || !body.password)
+        const body = await c.req.json<createTask>();
+        if (!body.userId || !body.title || !body.dueDate)
             return c.json(
                 {
                     success: false,
@@ -35,11 +29,11 @@ export const createUser = async (c: Context) => {
                 },
                 400
             );
-        const user = await userModel.createUser(body);
+        const task = await taskModel.createTask(body);
         return c.json({
             success: true,
-            data: user,
-            msg: "Created new user!",
+            data: task,
+            msg: "Created new task!",
         });
     } catch (e) {
         return c.json(
@@ -53,10 +47,10 @@ export const createUser = async (c: Context) => {
     }
 }
 
-export const getUser = async (c: Context) => {
+export const getTask = async (c: Context) => {
     try {
-        const body = c.req.query("userId");
-        if (body == null)
+        const body = await c.req.json<getTask>()
+        if (!body.userId)
             return c.json(
                 {
                     success: false,
@@ -65,11 +59,11 @@ export const getUser = async (c: Context) => {
                 },
                 400
             );
-        const user = await userModel.getUser(body);
+        const task = await taskModel.getTask(body);
         return c.json({
             success: true,
-            data: user,
-            msg: "found a user!",
+            data: task,
+            msg: "found tasks!",
         });
     } catch (e) {
         return c.json(
@@ -83,10 +77,10 @@ export const getUser = async (c: Context) => {
     }
 }
 
-export const updateUsername = async (c: Context) => {
+export const updateTask = async (c: Context) => {
     try {
-        const body = await c.req.json<updateUsername>();
-        if (!body.userId || !body.username)
+        const body = await c.req.json<updateTask>()
+        if (!body.taskId)
             return c.json(
                 {
                     success: false,
@@ -95,11 +89,11 @@ export const updateUsername = async (c: Context) => {
                 },
                 400
             );
-        const user = await userModel.updateUsername(body);
+        const task = await taskModel.updateTask(body);
         return c.json({
             success: true,
-            data: user,
-            msg: "updated username!",
+            data: task,
+            msg: "updated a task!",
         });
     } catch (e) {
         return c.json(
@@ -113,10 +107,10 @@ export const updateUsername = async (c: Context) => {
     }
 }
 
-export const updateProfilePicture = async (c: Context) => {
+export const procrastinate = async (c: Context) => {
     try {
-        const body = await c.req.json<updateProfilePicture>();
-        if (!body.userId || !body.profilePicture)
+        const body = await c.req.json<updateTask>()
+        if (!body.taskId)
             return c.json(
                 {
                     success: false,
@@ -125,11 +119,11 @@ export const updateProfilePicture = async (c: Context) => {
                 },
                 400
             );
-        const user = await userModel.updateProfilePicture(body);
+        const task = await taskModel.procrastinate(body);
         return c.json({
             success: true,
-            data: user,
-            msg: "updated profile picture!",
+            data: task,
+            msg: "procrastinated a task!",
         });
     } catch (e) {
         return c.json(
@@ -143,10 +137,10 @@ export const updateProfilePicture = async (c: Context) => {
     }
 }
 
-export const updateXp = async (c: Context) => {
+export const deleteTask = async (c: Context) => {
     try {
-        const body = await c.req.json<updateXp>();
-        if (!body.userId || !body.xp)
+        const body = await c.req.json<updateTask>()
+        if (!body.taskId)
             return c.json(
                 {
                     success: false,
@@ -155,11 +149,11 @@ export const updateXp = async (c: Context) => {
                 },
                 400
             );
-        const user = await userModel.gainXp(body);
+        const task = await taskModel.deleteTask(body);
         return c.json({
             success: true,
-            data: user,
-            msg: "updated XP and Rank!",
+            data: task,
+            msg: "deleted a task!",
         });
     } catch (e) {
         return c.json(
