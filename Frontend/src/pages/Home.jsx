@@ -230,7 +230,7 @@ const Home = () => {
                                     <FaTrophy className="text-yellow-500" />
                                     <span>XP points</span>
                                 </div>
-                                <span className="font-semibold">{user?.currentXp}</span>
+                                <span className="font-semibold">{user?.xp}</span>
                             </div>
                             <div className="flex items-center justify-between p-3 bg-gray-100 rounded-xl">
                                 <div className="flex items-center space-x-2">
@@ -259,7 +259,14 @@ const Home = () => {
 
                 {/* Main Content */}
                 <div className="flex flex-col gap-4 mt-10.25 ml-5 mr-5">
-                    {taskList.map((task) => (
+                    {taskList.length === 0 ? (
+                        <div className="border-dashed border-2 border-gray-300 rounded-xl p-10 flex w-88 lg:w-200 flex-col items-center justify-center text-center">
+                            <div className="text-gray-400 text-4xl mb-4">📋</div>
+                            <h2 className="text-xl font-semibold text-gray-700">No tasks yet!</h2>
+                            <p className="text-gray-500 mt-1">Add a task to get started</p>
+                        </div>
+                    ) : (
+                        taskList.map((task) => (
                         <div key={task.taskId}>
                             {/* Main Task */}
                             <div className="p-5 border rounded-xl shadow-sm bg-white w-88 lg:w-200">
@@ -371,9 +378,9 @@ const Home = () => {
                                     </div>
                                 </div>
                             ))}
-
                         </div>
-                    ))}
+                        ))
+                    )}
                 </div>
             </div>
         </>
