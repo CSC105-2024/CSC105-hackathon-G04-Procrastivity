@@ -172,3 +172,36 @@ export const updateXp = async (c: Context) => {
         );
     }
 }
+
+export const login = async (c: Context) => {
+    try {
+        const body = await c.req.json<{ username: string, password: string }>();
+        if (!body.username || !body.password) {
+            return c.json({
+                success: false,
+                data: null,
+                msg: "Missing required fields",
+            }, 400);
+        }
+        const user = await userModel.login(body);
+        if (!user) {
+            return c.json({
+                success: false,
+                data: null,
+                msg: "Invalid username or password",
+            }, 401);
+        }
+        return c.json({
+            success: true,
+            data: user,
+            msg: "Login successful!",
+        });
+    } catch (e) {
+        return c.json({
+            success: false,
+            data: null,
+            msg: `${e}`,
+        }, 500);
+    }
+}
+

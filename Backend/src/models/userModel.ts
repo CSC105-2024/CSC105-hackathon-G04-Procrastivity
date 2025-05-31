@@ -51,6 +51,18 @@ export const updateProfilePicture = async (body: any) => {
 }
 
 export const gainXp = async (body: any) => {
+
+    const gain = await db.user.update({
+        where: {
+            userId: body.userId
+        },
+        data: {
+            xp: {
+                increment: body.xp
+            }
+        }
+    })
+
     const data = await getUser(body.userId);
     // @ts-ignore
     let xp = data.currentXp + body.xp;
@@ -85,6 +97,7 @@ export const gainXp = async (body: any) => {
             maxXp /= 4;
             xp = maxXp + body.xp
             newRank = ranks[index-1]
+            isMax = false;
         }
     }
 
@@ -102,3 +115,14 @@ export const gainXp = async (body: any) => {
 
     return user;
 }
+
+export const login = async (body: { username: string, password: string }) => {
+    const user = await db.user.findFirst({
+        where: {
+            username: body.username,
+            password: body.password,
+        },
+    });
+    return user;
+}
+
