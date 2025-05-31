@@ -2,61 +2,13 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaTrophy, FaCheckCircle, FaRegClock } from 'react-icons/fa';
 import { GiPodium } from 'react-icons/gi';
-import iron from '../picture/iron.png';
-import bronze from '../picture/bronze.png';
-import silver from '../picture/silver.png';
-import gold from '../picture/gold.png';
-import platinum from '../picture/platinum.png';
+import iron from '../picture/iron.png'
+import bronze from '../picture/bronze.png'
+import gold from '../picture/gold.png'
+import silver from '../picture/silver.png'
+import platinum from '../picture/platinum.png'
 
-const ranks = ["iron", "bronze", "silver", "gold", "platinum"];
-
-const rankThresholds = [
-    { name: "Iron", maxXp: 0 },
-    { name: "Bronze", maxXp: 40 },
-    { name: "Silver", maxXp: 160 },
-    { name: "Gold", maxXp: 640 },
-    { name: "Platinum", maxXp: 2560 },
-];
-
-const getRankInfo = (totalXp) => {
-    for (let i = 0; i < rankThresholds.length - 1; i++) {
-        const current = rankThresholds[i];
-        const next = rankThresholds[i + 1];
-
-        if (totalXp < next.maxXp) {
-            return {
-                currentRank: current.name.toLowerCase(),
-                currentXp: totalXp - current.maxXp,
-                maxXp: next.maxXp - current.maxXp,
-                nextRank: next.name.toLowerCase(),
-                xpToNext: next.maxXp - totalXp,
-                maxRank: false,
-            };
-        }
-    }
-
-    // Max rank case
-    const max = rankThresholds[rankThresholds.length - 1];
-    return {
-        currentRank: max.name.toLowerCase(),
-        currentXp: max.maxXp,
-        maxXp: 0,
-        nextRank: null,
-        xpToNext: null,
-        maxRank: true,
-    };
-};
-
-const getRankImage = (rank) => {
-    switch (rank.toLowerCase()) {
-        case "iron": return iron;
-        case "bronze": return bronze;
-        case "silver": return silver;
-        case "gold": return gold;
-        case "platinum": return platinum;
-        default: return bronze;
-    }
-};
+const ranks = ["iron", "bronze", "silver", "gold", "platinum"]
 
 const Profile = () => {
     const navigate = useNavigate();
@@ -64,18 +16,32 @@ const Profile = () => {
     const mockUser = {
         userId: 1,
         username: "John Salapao",
-        "password": "b1",
-        "maxXp": 40,
-        "currentXp": 23,
+        password: "b1",
         profilePicture: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80",
-        "rank": "Bronze",
-        "maxRank": false,
-        totalXp: 23,
+        maxXp: 40,
+        currentXp: 23,
+        rank: "Bronze",
+        maxRank: false,
         taskCompleted: 0,
         taskProcrastinated: 0,
     };
 
-    const rankInfo = getRankInfo(mockUser.totalXp);
+    const getRankImage = (rank) => {
+        switch (rank.toLowerCase()) {
+            case "iron":
+                return iron;
+            case "bronze":
+                return bronze;
+            case "silver":
+                return silver;
+            case "gold":
+                return gold;
+            case "platinum":
+                return platinum;
+            default:
+                return bronze;
+        }
+    };
 
     const [profilePic, setProfilePic] = useState(mockUser.profilePicture);
     const [displayName, setDisplayName] = useState(mockUser.username);
@@ -108,7 +74,7 @@ const Profile = () => {
     return (
         <>
             <div className="flex items-center justify-center p-5">
-                <div className="flex flex-col items-center justify-center py-1 gap-15px px-5 lg:flex-row">
+                <div className="flex flex-col items-center justify-center py-1 gap-[30px] px-5 lg:flex-row">
                     <div className="relative flex items-center justify-center">
                         <input
                             type="file"
@@ -117,41 +83,44 @@ const Profile = () => {
                             style={{ display: "none" }}
                             accept="image/*"
                         />
+
                         <img
                             src={profilePic}
                             alt={displayName}
                             className={`w-[120px] lg:w-[180px] lg:h-[180px] h-[120px] rounded-full object-cover border-[5px] border-white shadow-[0_5px_15px_rgba(0,0,0,0.1)] block cursor-pointer ${loading ? "opacity-50 pointer-events-none" : ""}`}
                             onClick={() => !loading && document.getElementById("fileInput").click()}
                         />
+
+                        {isEditing && !loading && (
+                            <div
+                                className="absolute bottom-0 right-0 bg-black text-white p-1 rounded-full cursor-pointer"
+                                onClick={() => document.getElementById("fileInput").click()}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                </svg>
+                            </div>
+                        )}
                     </div>
 
-                    <div className="flex flex-col items-center">
-                        <div className="relative flex gap-10 items-center justify-center mb-2 transform -translate-y-2">
+                    <div className="flex flex-col items-center mt-4 ">
+                        <div className="relative flex items-center justify-center mb-2">
                             <img
-                                src={getRankImage(rankInfo.currentRank)}
-                                alt={rankInfo.currentRank}
+                                src={getRankImage(mockUser.rank)}
+                                alt={mockUser.rank}
                                 className="w-16 h-16 object-contain"
                             />
-                            {rankInfo.nextRank && (
-                                <img
-                                    src={getRankImage(rankInfo.nextRank)}
-                                    alt={rankInfo.nextRank}
-                                    className="w-16 h-16 object-contain"
-                                />
-                            )}
+                            <img
+                                src={mockUser.maxRank ? getRankImage(mockUser.rank) : getRankImage(ranks[ranks.indexOf(mockUser.rank.toLowerCase())+1])}
+                                alt={mockUser.rank}
+                                className="w-16 h-16 object-contain"
+                            />
                         </div>
-
-                        <div className="w-full transform -translate-y-6">
-                            <div className="bg-gray-200 rounded-full h-4 overflow-hidden">
-                                <div
-                                    className="bg-green-400 h-full transition-all duration-300"
-                                    style={{ width: `${(rankInfo.currentXp / rankInfo.maxXp) * 100}%` }}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="text-sm text-center text-gray-600">
-                            {rankInfo.maxRank ? "Max Rank" : `${rankInfo.xpToNext} XP to ${rankInfo.nextRank}`}
+                        <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+                            <div
+                                className="bg-green-400 h-full transition-all duration-300"
+                                style={{ width: `${(mockUser.currentXp / mockUser.maxXp) * 100}%` }}
+                            />
                         </div>
 
                         {isEditing ? (
@@ -162,7 +131,7 @@ const Profile = () => {
                                 className="font-bodoni text-[32px] mb-2 tracking-[0.5px] w-full px-[15px] py-[12px] border border-[#ddd] rounded font-light transition duration-200 ease-in-out focus:border-black focus:shadow text-center"
                             />
                         ) : (
-                            <h1 className="font-bodoni text-[20px] font-normal tracking-[0.5px] text-center">
+                            <h1 className="font-bodoni text-[20px] mb-1 font-normal tracking-[0.5px] text-center">
                                 {displayName}
                             </h1>
                         )}
@@ -189,6 +158,8 @@ const Profile = () => {
                 </div>
             </div>
 
+
+
             <div className="w-80 mx-auto px-10 p-6 bg-white rounded-3xl shadow-xl border">
                 <div className="flex items-center mb-4 space-x-2">
                     <GiPodium className="text-xl" />
@@ -200,14 +171,14 @@ const Profile = () => {
                             <FaTrophy className="text-yellow-500" />
                             <span>XP points</span>
                         </div>
-                        <span className="font-semibold">{rankInfo.currentXp}</span>
+                        <span className="font-semibold">{mockUser.currentXp}</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-100 rounded-xl">
                         <div className="flex items-center space-x-2">
                             <FaTrophy className="text-black" />
                             <span>Current rank</span>
                         </div>
-                        <span className="font-semibold capitalize">{rankInfo.currentRank}</span>
+                        <span className="font-semibold">{mockUser.rank}</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-green-50 rounded-xl">
                         <div className="flex items-center space-x-2">
@@ -228,7 +199,7 @@ const Profile = () => {
 
             <div className="w-80 mx-auto mt-4 text-right">
                 <button
-                    className="px-[25px] py-[12px] mb-5 rounded-[4px] cursor-pointer text-[13px] uppercase tracking-[1.5px] transition-all duration-300 ease-in-out font-normal border border-black text-black hover:bg-red-500 hover:text-white"
+                    className="px-[25px] py-[12px] rounded-[4px] cursor-pointer text-[13px] uppercase tracking-[1.5px] transition-all duration-300 ease-in-out font-normal border border-black text-black hover:bg-red-500 hover:text-white"
                     onClick={handleLogout}
                 >
                     Logout
