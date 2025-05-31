@@ -19,14 +19,14 @@ export const register = async (username, password) => {
   return res.data;
 };
 
-export const getProfile = async () => {
-  const res = await api.get('/user/profile');
+export const getProfile = async (userId) => {
+  const res = await api.get(`/user/getUser?userId=${userId}`);
   return res.data;
 };
 
 export const logout = async () => {
-  const res = await api.post('/user/logout');
-  return res.data;
+  // No backend call needed, just clear state on frontend
+  return { success: true };
 };
 
 export const getTasks = async (userId, category) => {
