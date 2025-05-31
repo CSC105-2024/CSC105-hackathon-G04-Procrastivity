@@ -8,7 +8,7 @@ export const createUser = async(body: any) => {
         data : {
             username: body.username,
             password: body.password,
-            profilePicture: body.profilePicture,
+            profilePicture: "",
         }
     })
 
@@ -89,11 +89,11 @@ export const gainXp = async (body: any) => {
     }
     //derank
     else if(xp < 0) {
-        //min rank
+        //min rankwda
         if(currentRank == "Iron") {
             xp = 0;
         }
-        else {
+        else {ad
             maxXp /= 4;
             xp = maxXp + body.xp
             newRank = ranks[index-1]

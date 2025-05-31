@@ -167,7 +167,7 @@ export const updateXp = async (c: Context) => {
                 success: false,
                 data: null,
                 msg: `${e}`,
-            },
+            },aw
             500
         );
     }
