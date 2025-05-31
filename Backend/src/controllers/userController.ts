@@ -7,7 +7,22 @@ type createUser = {
     profilePicture: string
 }
 
-const createUser = async (c: Context) => {
+type updateUsername = {
+    userId: number,
+    username: string,
+}
+
+type updateProfilePicture = {
+    userId: number,
+    profilePicture: string,
+}
+
+type updateXp = {
+    userId: number,
+    xp: number,
+}
+
+export const createUser = async (c: Context) => {
     try {
         const body = await c.req.json<createUser>();
         if (!body.username || !body.password)
@@ -37,6 +52,122 @@ const createUser = async (c: Context) => {
     }
 }
 
-export {
-    createUser
+export const getUser = async (c: Context) => {
+    try {
+        const body = await c.req.query("userId");
+        if (body == null)
+            return c.json(
+                {
+                    success: false,
+                    data: null,
+                    msg: "Missing required fields",
+                },
+                400
+            );
+        const user = await userModel.getUser(body);
+        return c.json({
+            success: true,
+            data: user,
+            msg: "found a user!",
+        });
+    } catch (e) {
+        return c.json(
+            {
+                success: false,
+                data: null,
+                msg: `${e}`,
+            },
+            500
+        );
+    }
+}
+
+export const updateUsername = async (c: Context) => {
+    try {
+        const body = await c.req.json<updateUsername>();
+        if (!body.userId || !body.username)
+            return c.json(
+                {
+                    success: false,
+                    data: null,
+                    msg: "Missing required fields",
+                },
+                400
+            );
+        const user = await userModel.updateUsername(body);
+        return c.json({
+            success: true,
+            data: user,
+            msg: "updated username!",
+        });
+    } catch (e) {
+        return c.json(
+            {
+                success: false,
+                data: null,
+                msg: `${e}`,
+            },
+            500
+        );
+    }
+}
+
+export const updateProfilePicture = async (c: Context) => {
+    try {
+        const body = await c.req.json<updateProfilePicture>();
+        if (!body.userId || !body.profilePicture)
+            return c.json(
+                {
+                    success: false,
+                    data: null,
+                    msg: "Missing required fields",
+                },
+                400
+            );
+        const user = await userModel.updateProfilePicture(body);
+        return c.json({
+            success: true,
+            data: user,
+            msg: "updated profile picture!",
+        });
+    } catch (e) {
+        return c.json(
+            {
+                success: false,
+                data: null,
+                msg: `${e}`,
+            },
+            500
+        );
+    }
+}
+
+export const updateXp = async (c: Context) => {
+    try {
+        const body = await c.req.json<updateXp>();
+        if (!body.userId || !body.xp)
+            return c.json(
+                {
+                    success: false,
+                    data: null,
+                    msg: "Missing required fields",
+                },
+                400
+            );
+        const user = await userModel.gainXp(body);
+        return c.json({
+            success: true,
+            data: user,
+            msg: "updated XP and Rank!",
+        });
+    } catch (e) {
+        return c.json(
+            {
+                success: false,
+                data: null,
+                msg: `${e}`,
+            },
+            500
+        );
+    }
 }
