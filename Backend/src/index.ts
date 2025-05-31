@@ -36,3 +36,7 @@ db.$connect()
     .catch((error ) => {
       console.error("Error connecting to the database:", error);
     });
+
+process.on('beforeExit', async () => {
+    await db.$disconnect()
+})
