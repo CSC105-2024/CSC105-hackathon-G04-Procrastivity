@@ -16,13 +16,11 @@ export const createUser = async(body: any) => {
 }
 
 export const getUser = async (body: any) => {
-    const id = body
     const user = await db.user.findUnique({
         where: {
-            userId : Number(id),
+            userId:  Number(body),
         }
     })
-
     return user;
 }
 
@@ -53,7 +51,7 @@ export const updateProfilePicture = async (body: any) => {
 }
 
 export const gainXp = async (body: any) => {
-    const data = await getUser(body);
+    const data = await getUser(body.userId);
     // @ts-ignore
     let xp = data.currentXp + body.xp;
     // @ts-ignore

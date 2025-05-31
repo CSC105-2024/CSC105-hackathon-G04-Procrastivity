@@ -85,6 +85,9 @@ export const getTask = async(body: any)=> {
                 userId: body.userId,
                 category: body.category.toLowerCase()
             },
+            orderBy: {
+              dueIn: 'asc'
+            },
             select: {
                 taskId: true,
                 title: true,
@@ -102,6 +105,9 @@ export const getTask = async(body: any)=> {
     const task = await db.task.findMany({
         where: {
             userId: body.userId
+        },
+        orderBy: {
+            dueIn: 'asc'
         },
         select: {
             taskId: true,
@@ -287,7 +293,7 @@ export const procrastinate = async(body: any)=> {
         },
         data: {
             taskProcrastinated: {
-                increment: 2
+                increment: 1
             }
         }
     })
