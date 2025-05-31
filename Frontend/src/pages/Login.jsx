@@ -45,6 +45,7 @@ const Login = () => {
             const res = await apiLogin(data.username, data.password);
             if (res.success) {
                 setUser(res.data);
+                localStorage.setItem('user', JSON.stringify(res.data));
                 navigate('/');
             } else {
                 setLoginError(res.msg || 'Login failed.');

@@ -26,13 +26,32 @@ export const UserProvider = ({ children }) => {
     })();
   }, []);
 
+  const refreshUser = async () => {
+    try {
+      const storedUser = JSON.parse(localStorage.getItem('user'));
+      const userId = storedUser?.userId;
+      if (!userId) throw new Error('No userId');
+      const res = await getProfile(userId);
+      if (res.success) {
+        setUser(res.data);
+        localStorage.setItem('user', JSON.stringify(res.data));
+      } else {
+        setUser(null);
+        localStorage.removeItem('user');
+      }
+    } catch (e) {
+      setUser(null);
+      localStorage.removeItem('user');
+    }
+  };
+
   const logout = async () => {
     setUser(null);
     localStorage.removeItem('user');
   };
 
   return (
-    <UserContext.Provider value={{ user, setUser, loading, logout }}>
+    <UserContext.Provider value={{ user, setUser, loading, logout, refreshUser }}>
       {children}
     </UserContext.Provider>
   );
