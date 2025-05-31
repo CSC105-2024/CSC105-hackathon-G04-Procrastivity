@@ -11,7 +11,7 @@ app.get('/', (c) => {
 })
 
 app.use('*', async (c, next) => {
-  c.res.headers.set('Access-Control-Allow-Origin', 'http://localhost:5173')
+  c.res.headers.set('Access-Control-Allow-Origin', 'http://localhost:5174')
   c.res.headers.set('Access-Control-Allow-Credentials', 'true')
   c.res.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH')
   c.res.headers.set('Access-Control-Allow-Headers', 'Content-Type')
