@@ -4,3 +4,5 @@ import * as userController from "../controllers/userController.ts";
 
 const userRouter = new Hono();
 userRouter.post("/createUser", userController.createUser);
+
+export {  userRouter };
