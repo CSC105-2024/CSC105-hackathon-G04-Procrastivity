@@ -230,7 +230,7 @@ const Home = () => {
                                     <FaTrophy className="text-yellow-500" />
                                     <span>XP points</span>
                                 </div>
-                                <span className="font-semibold">{user?.currentXp}</span>
+                                <span className="font-semibold">{user?.xp}</span>
                             </div>
                             <div className="flex items-center justify-between p-3 bg-gray-100 rounded-xl">
                                 <div className="flex items-center space-x-2">

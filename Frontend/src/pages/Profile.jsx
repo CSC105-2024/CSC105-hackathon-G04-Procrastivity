@@ -61,11 +61,24 @@ const getRankImage = (rank) => {
 
 const Profile = () => {
     const navigate = useNavigate();
-    const { user, logout, loading } = useUser();
+    const { user, setUser, logout, loading, refreshUser } = useUser();
+    const [profilePic, setProfilePic] = useState(user?.profilePicture || '');
+    const [displayName, setDisplayName] = useState(user?.username || '');
+    const [isEditing, setIsEditing] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [saveStatus, setSaveStatus] = useState('');
 
     useEffect(() => {
         document.title = "Procrastivity - Profile";
-    }, [])
+    }, []);
+
+    // Update local state when user data changes
+    useEffect(() => {
+        if (user) {
+            setProfilePic(user.profilePicture || '');
+            setDisplayName(user.username || '');
+        }
+    }, [user]);
 
     React.useEffect(() => {
         if (!loading && !user) navigate('/login');
@@ -74,28 +87,93 @@ const Profile = () => {
     if (loading || !user) return null;
 
     const rankInfo = getRankInfo(user.xp || 0);
-    const [profilePic, setProfilePic] = useState(user.profilePicture);
-    const [displayName, setDisplayName] = useState(user.username);
-    const [isEditing, setIsEditing] = useState(false);
-    const [saving, setSaving] = useState(false);
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
+        setSaving(true);
+        setSaveStatus('Processing image...');
+
         const reader = new FileReader();
         reader.onloadend = () => {
-            setProfilePic(reader.result);
+            const newProfilePic = reader.result;
+
+            // Update local state immediately
+            setProfilePic(newProfilePic);
+
+            // Update user context immediately for real-time UI update
+            const updatedUser = { ...user, profilePicture: newProfilePic };
+            setUser(updatedUser);
+
+            // Also update localStorage to persist the change
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+
+            setSaving(false);
+            setSaveStatus('Image updated!');
+            setTimeout(() => setSaveStatus(''), 2000);
         };
         reader.readAsDataURL(file);
     };
 
-    const handleSaveProfile = () => {
+    const handleNameChange = (e) => {
+        const newName = e.target.value;
+        setDisplayName(newName);
+
+        // Update user context immediately for real-time display
+        const updatedUser = { ...user, username: newName };
+        setUser(updatedUser);
+
+        // Also update localStorage to persist the change
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+    };
+
+    const handleSaveProfile = async () => {
+        if (!displayName.trim()) {
+            setSaveStatus('Name cannot be empty');
+            setTimeout(() => setSaveStatus(''), 3000);
+            return;
+        }
+
         setSaving(true);
-        setTimeout(() => {
+        setSaveStatus('Saving changes...');
+
+        try {
+            const updatedUser = {
+                ...user,
+                username: displayName.trim(),
+                profilePicture: profilePic
+            };
+
+            // Update context and localStorage immediately
+            setUser(updatedUser);
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+
             setIsEditing(false);
+            setSaveStatus('Profile updated!');
+            setTimeout(() => setSaveStatus(''), 2000);
+
+            // Optional: If you want to sync with backend later, you can call refreshUser
+            // await refreshUser();
+        } catch (error) {
+            console.error('Error saving profile:', error);
+            setSaveStatus('Error saving profile');
+            setTimeout(() => setSaveStatus(''), 3000);
+
+            // Revert changes on error
+            setDisplayName(user?.username || '');
+            setProfilePic(user?.profilePicture || '');
+        } finally {
             setSaving(false);
-        }, 1000);
+        }
+    };
+
+    const handleCancelEdit = () => {
+        // Reset to original values
+        setDisplayName(user.username || '');
+        setProfilePic(user.profilePicture || '');
+        setIsEditing(false);
+        setSaveStatus('');
     };
 
     const handleLogout = async () => {
@@ -114,13 +192,19 @@ const Profile = () => {
                             onChange={handleImageChange}
                             style={{ display: "none" }}
                             accept="image/*"
+                            disabled={saving}
                         />
                         <img
-                            src={profilePic}
-                            alt={displayName}
-                            className={`w-[120px] lg:w-[180px] lg:h-[180px] h-[120px] rounded-full object-cover border-[5px] border-white shadow-[0_5px_15px_rgba(0,0,0,0.1)] block cursor-pointer ${saving ? "opacity-50 pointer-events-none" : ""}`}
+                            src={profilePic || user.profilePicture}
+                            alt={displayName || user.username}
+                            className={`w-[120px] lg:w-[180px] lg:h-[180px] h-[120px] rounded-full object-cover border-[5px] border-white shadow-[0_5px_15px_rgba(0,0,0,0.1)] block cursor-pointer transition-opacity duration-200 ${saving ? "opacity-50 pointer-events-none" : ""}`}
                             onClick={() => !saving && document.getElementById("fileInput").click()}
                         />
+                        {saving && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex flex-col items-center">
@@ -140,40 +224,75 @@ const Profile = () => {
                         </div>
 
                         <div className="w-full transform -translate-y-6">
-                            <div className="bg-gray-200 rounded-full h-4 overflow-hidden">
-                                <div
-                                    className="bg-green-400 h-full transition-all duration-300"
-                                    style={{ width: `${(rankInfo.currentXp / rankInfo.maxXp) * 100}%` }}
-                                />
+                            {/* Progress Bar moved from bottom section */}
+                            <div className="mt-6">
+                                <div className="flex justify-between text-xs mb-1">
+                                    <span className="capitalize">{user?.rank}</span>
+                                    <span>{user?.xp} / {user?.maxXp} XP</span>
+                                </div>
+                                <div className="bg-gray-200 rounded-full h-4 overflow-hidden">
+                                    <div
+                                        className="bg-green-400 h-full transition-all duration-300"
+                                        style={{ width: `${user?.maxXp ? Math.min(100, (user?.xp / user?.maxXp) * 100) : 0}%` }}
+                                    />
+                                </div>
+                                <div className="text-xs text-right mt-1">
+                                    {user?.maxRank ? 'Max Rank' : `${user?.maxXp - user?.xp} XP to next rank`}
+                                </div>
                             </div>
                         </div>
 
-                        <div className="text-sm text-center text-gray-600">
-                            {rankInfo.maxRank ? "Max Rank" : `${rankInfo.xpToNext} XP to ${rankInfo.nextRank}`}
-                        </div>
-
                         {isEditing ? (
-                            <input
-                                type="text"
-                                value={displayName}
-                                onChange={(e) => setDisplayName(e.target.value)}
-                                className="font-bodoni text-[32px] mb-2 tracking-[0.5px] w-full px-[15px] py-[12px] border border-[#ddd] rounded font-light transition duration-200 ease-in-out focus:border-black focus:shadow text-center"
-                            />
+                            <div className="w-full">
+                                <input
+                                    type="text"
+                                    value={displayName}
+                                    onChange={handleNameChange}
+                                    className="font-bodoni text-[32px] mb-2 tracking-[0.5px] w-full px-[15px] py-[12px] border border-[#ddd] rounded font-light transition duration-200 ease-in-out focus:border-black focus:shadow text-center"
+                                    placeholder="Enter your name"
+                                    maxLength={50}
+                                />
+                                {saveStatus && (
+                                    <p className={`text-center text-sm mt-1 ${
+                                        saveStatus.includes('Error') ? 'text-red-500' : 'text-green-500'
+                                    }`}>
+                                        {saveStatus}
+                                    </p>
+                                )}
+                            </div>
                         ) : (
-                            <h1 className="font-bodoni text-[20px] font-normal tracking-[0.5px] text-center">
-                                {displayName}
-                            </h1>
+                            <div className="text-center">
+                                <h1 className="font-bodoni text-[20px] font-normal tracking-[0.5px]">
+                                    {displayName || user.username}
+                                </h1>
+                                {saveStatus && (
+                                    <p className={`text-sm mt-1 ${
+                                        saveStatus.includes('Error') ? 'text-red-500' : 'text-green-500'
+                                    }`}>
+                                        {saveStatus}
+                                    </p>
+                                )}
+                            </div>
                         )}
 
                         <div className="flex flex-col gap-[15px] mt-[30px] w-full items-center">
                             {isEditing ? (
-                                <button
-                                    className="px-[25px] py-[12px] w-full md:w-[200px] rounded-[4px] cursor-pointer text-[13px] uppercase tracking-[1.5px] transition-all duration-300 ease-in-out font-normal border border-black text-black hover:bg-black hover:text-white"
-                                    onClick={handleSaveProfile}
-                                    disabled={saving}
-                                >
-                                    {saving ? "Saving..." : "Save"}
-                                </button>
+                                <div className="flex gap-2 w-full">
+                                    <button
+                                        className="px-[25px] py-[12px] flex-1 rounded-[4px] cursor-pointer text-[13px] uppercase tracking-[1.5px] transition-all duration-300 ease-in-out font-normal border border-black text-black hover:bg-black hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                                        onClick={handleSaveProfile}
+                                        disabled={saving || !displayName.trim()}
+                                    >
+                                        {saving ? "Saving..." : "Save"}
+                                    </button>
+                                    <button
+                                        className="px-[15px] py-[12px] rounded-[4px] cursor-pointer text-[13px] uppercase tracking-[1.5px] transition-all duration-300 ease-in-out font-normal border border-gray-400 text-gray-600 hover:bg-gray-400 hover:text-white"
+                                        onClick={handleCancelEdit}
+                                        disabled={saving}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
                             ) : (
                                 <button
                                     className="px-[25px] py-[12px] rounded-[4px] cursor-pointer text-[13px] uppercase tracking-[1.5px] transition-all duration-300 ease-in-out font-normal border border-black text-black hover:bg-black hover:text-white"
@@ -198,28 +317,28 @@ const Profile = () => {
                             <FaTrophy className="text-yellow-500" />
                             <span>XP points</span>
                         </div>
-                        <span className="font-semibold">{rankInfo.currentXp}</span>
+                        <span className="font-semibold">{user?.xp}</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-100 rounded-xl">
                         <div className="flex items-center space-x-2">
                             <FaTrophy className="text-black" />
                             <span>Current rank</span>
                         </div>
-                        <span className="font-semibold capitalize">{rankInfo.currentRank}</span>
+                        <span className="font-semibold">{user?.rank}</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-green-50 rounded-xl">
                         <div className="flex items-center space-x-2">
                             <FaCheckCircle className="text-green-500" />
                             <span>Tasks Completed</span>
                         </div>
-                        <span className="font-semibold">{user.taskCompleted}</span>
+                        <span className="font-semibold">{user?.taskCompleted}</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-rose-50 rounded-xl">
                         <div className="flex items-center space-x-2">
                             <FaRegClock className="text-rose-500" />
                             <span>Tasks Procrastinated</span>
                         </div>
-                        <span className="font-semibold">{user.taskProcrastinated}</span>
+                        <span className="font-semibold">{user?.taskProcrastinated}</span>
                     </div>
                 </div>
             </div>
@@ -236,4 +355,18 @@ const Profile = () => {
     );
 };
 
+// Utility function for debouncing
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 export default Profile;
+
