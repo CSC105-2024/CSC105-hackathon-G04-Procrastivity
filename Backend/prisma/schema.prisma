@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -10,6 +9,35 @@ datasource db {
 }
 
 model User {
-  id  Int @id@default(autoincrement())
-  
+  userId             Int     @id @default(autoincrement())
+  username           String
+  password           String
+  profilePicture     String
+  maxXp              Int     @default(10)
+  currentXp          Int     @default(0)
+  rank               String  @default("Iron")
+  maxRank            Boolean @default(false)
+  taskCompleted      Int     @default(0)
+  taskProcrastinated Int     @default(0)
+  Task               Task[]
+}
+
+model Task {
+  taskId         Int       @id @default(autoincrement())
+  title          String
+  completed      Boolean   @default(false)
+  procrastinated Boolean   @default(false)
+  dueDate        Int
+  userId         Int
+  user           User      @relation(fields: [userId], references: [userId])
+  subTask        subTask[]
+}
+
+model subTask {
+  subTaskId  Int     @id @default(autoincrement())
+  title      String
+  completed  Boolean @default(false)
+  dueDate    Int
+  mainTaskId Int
+  task       Task    @relation(fields: [mainTaskId], references: [taskId])
 }
