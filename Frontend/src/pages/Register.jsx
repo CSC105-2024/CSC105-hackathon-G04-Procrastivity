@@ -40,6 +40,7 @@ const Register = () => {
         try {
             const res = await apiRegister(username, password);
             if (res.success) {
+                localStorage.setItem('user', JSON.stringify(res.data));
                 alert('Account created – please log in.');
                 navigate('/login');
             } else {
