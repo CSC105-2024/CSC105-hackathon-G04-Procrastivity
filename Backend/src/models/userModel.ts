@@ -97,6 +97,7 @@ export const gainXp = async (body: any) => {
             maxXp /= 4;
             xp = maxXp + body.xp
             newRank = ranks[index-1]
+            isMax = false;
         }
     }
 
