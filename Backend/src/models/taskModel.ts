@@ -84,7 +84,7 @@ export const getTask = async(body: any)=> {
         const task = await db.task.findMany({
             where: {
                 userId: body.userId,
-                category: body.category.toLowerCase()
+                category: body.category
             },
             orderBy: {
               dueIn: 'asc'
@@ -101,6 +101,7 @@ export const getTask = async(body: any)=> {
                 subTask: true,
             }
         })
+        
         return task;
     }
     const task = await db.task.findMany({

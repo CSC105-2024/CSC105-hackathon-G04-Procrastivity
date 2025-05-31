@@ -29,9 +29,20 @@ export const logout = async () => {
   return res.data;
 };
 
-export const getTasks = async (userId, category = null) => {
-  const body = { userId };
-  if (category) body.category = category;
+export const getTasks = async (userId, category) => {
+  let body = {};
+  if(category) {
+    body = {
+      userId: userId,
+      category: category,
+    };
+  }
+  else {
+    body = {
+      userId: userId,
+    }
+  }
+
   const res = await api.patch('/task/getTask', body);
   return res.data;
 };

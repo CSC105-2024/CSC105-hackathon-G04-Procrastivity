@@ -16,10 +16,13 @@ const Home = () => {
     const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
     const [newTask, setNewTask] = useState({ title: '', category: '', dueDate: '' });
     const dropdownRef = useRef(null);
-    const categories = ["Personal", "Study", "Errands", "Health", "Finance"];
+    const categories = ["work", "personal", "study", "errands", "health", "finance"];
 
     useEffect(() => {
         document.title = "Procrastivity - Home";
+        if (user) {
+            getTasks(user.userId, selectedCategory);
+        }
     }, [])
 
     useEffect(() => {
@@ -28,9 +31,12 @@ const Home = () => {
 
     useEffect(() => {
         if (user) {
+            console.log(selectedCategory);
             getTasks(user.userId, selectedCategory).then(res => {
-                if (res.success) setTaskList(res.data);
-            });
+                console.log(res.data)
+                setTaskList(res.data);
+            })
+
         }
     }, [user, selectedCategory]);
 
