@@ -6,7 +6,7 @@ import { getTasks, createTask, updateTask, deleteTask, updateSubTask, procrastin
 import { useNavigate } from "react-router-dom";
 
 const Home = () => {
-    const { user, loading } = useUser();
+    const { user, loading, refreshUser } = useUser();
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const navigate = useNavigate ? useNavigate() : () => {};
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -56,6 +56,7 @@ const Home = () => {
         if (user) {
             const res = await getTasks(user.userId, selectedCategory);
             if (res.success) setTaskList(res.data);
+            await refreshUser();
         }
         setExpandedTaskId(taskId);
     };
@@ -66,6 +67,7 @@ const Home = () => {
         if (user) {
             const res = await getTasks(user.userId, selectedCategory);
             if (res.success) setTaskList(res.data);
+            await refreshUser();
         }
     };
 
@@ -74,6 +76,7 @@ const Home = () => {
         const sub = task.subTask.find(s => s.subTaskId === subTaskId);
         await updateSubTask(subTaskId, { completed: !sub.completed });
         setTaskList(prev => prev.map(t => t.taskId === taskId ? { ...t, subTask: t.subTask.map(s => s.subTaskId === subTaskId ? { ...s, completed: !s.completed } : s) } : t));
+        await refreshUser();
     };
 
     const handleCreateTask = async (e) => {
