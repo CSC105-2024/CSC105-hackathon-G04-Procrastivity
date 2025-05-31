@@ -7,7 +7,7 @@ import Profile from "./pages/Profile.jsx";
 import Home from "./pages/Home.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
-
+import { UserProvider } from './contexts/UserContext.jsx';
 
 const router = createBrowserRouter([
     {
@@ -40,6 +40,8 @@ const router = createBrowserRouter([
 ])
 createRoot(document.getElementById('root')).render(
   <StrictMode>
+    <UserProvider>
       <RouterProvider router={router} />
+    </UserProvider>
   </StrictMode>,
 )

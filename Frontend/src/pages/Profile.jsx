@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import { useNavigate } from "react-router-dom";
 import { FaTrophy, FaCheckCircle, FaRegClock } from 'react-icons/fa';
 import { GiPodium } from 'react-icons/gi';
@@ -7,6 +7,7 @@ import bronze from '../picture/bronze.png';
 import silver from '../picture/silver.png';
 import gold from '../picture/gold.png';
 import platinum from '../picture/platinum.png';
+import { useUser } from '../contexts/UserContext';
 
 const ranks = ["iron", "bronze", "silver", "gold", "platinum"];
 
@@ -60,27 +61,23 @@ const getRankImage = (rank) => {
 
 const Profile = () => {
     const navigate = useNavigate();
+    const { user, logout, loading } = useUser();
 
-    const mockUser = {
-        userId: 1,
-        username: "John Salapao",
-        "password": "b1",
-        "maxXp": 40,
-        "currentXp": 23,
-        profilePicture: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80",
-        "rank": "Bronze",
-        "maxRank": false,
-        totalXp: 23,
-        taskCompleted: 0,
-        taskProcrastinated: 0,
-    };
+    useEffect(() => {
+        document.title = "Procrastivity - Profile";
+    }, [])
 
-    const rankInfo = getRankInfo(mockUser.totalXp);
+    React.useEffect(() => {
+        if (!loading && !user) navigate('/login');
+    }, [user, loading, navigate]);
 
-    const [profilePic, setProfilePic] = useState(mockUser.profilePicture);
-    const [displayName, setDisplayName] = useState(mockUser.username);
+    if (loading || !user) return null;
+
+    const rankInfo = getRankInfo(user.xp || 0);
+    const [profilePic, setProfilePic] = useState(user.profilePicture);
+    const [displayName, setDisplayName] = useState(user.username);
     const [isEditing, setIsEditing] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [saving, setSaving] = useState(false);
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -94,15 +91,16 @@ const Profile = () => {
     };
 
     const handleSaveProfile = () => {
-        setLoading(true);
+        setSaving(true);
         setTimeout(() => {
             setIsEditing(false);
-            setLoading(false);
+            setSaving(false);
         }, 1000);
     };
 
-    const handleLogout = () => {
-        navigate("/login");
+    const handleLogout = async () => {
+        await logout();
+        navigate('/login');
     };
 
     return (
@@ -120,8 +118,8 @@ const Profile = () => {
                         <img
                             src={profilePic}
                             alt={displayName}
-                            className={`w-[120px] lg:w-[180px] lg:h-[180px] h-[120px] rounded-full object-cover border-[5px] border-white shadow-[0_5px_15px_rgba(0,0,0,0.1)] block cursor-pointer ${loading ? "opacity-50 pointer-events-none" : ""}`}
-                            onClick={() => !loading && document.getElementById("fileInput").click()}
+                            className={`w-[120px] lg:w-[180px] lg:h-[180px] h-[120px] rounded-full object-cover border-[5px] border-white shadow-[0_5px_15px_rgba(0,0,0,0.1)] block cursor-pointer ${saving ? "opacity-50 pointer-events-none" : ""}`}
+                            onClick={() => !saving && document.getElementById("fileInput").click()}
                         />
                     </div>
 
@@ -172,9 +170,9 @@ const Profile = () => {
                                 <button
                                     className="px-[25px] py-[12px] w-full md:w-[200px] rounded-[4px] cursor-pointer text-[13px] uppercase tracking-[1.5px] transition-all duration-300 ease-in-out font-normal border border-black text-black hover:bg-black hover:text-white"
                                     onClick={handleSaveProfile}
-                                    disabled={loading}
+                                    disabled={saving}
                                 >
-                                    {loading ? "Saving..." : "Save"}
+                                    {saving ? "Saving..." : "Save"}
                                 </button>
                             ) : (
                                 <button
@@ -214,14 +212,14 @@ const Profile = () => {
                             <FaCheckCircle className="text-green-500" />
                             <span>Tasks Completed</span>
                         </div>
-                        <span className="font-semibold">{mockUser.taskCompleted}</span>
+                        <span className="font-semibold">{user.taskCompleted}</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-rose-50 rounded-xl">
                         <div className="flex items-center space-x-2">
                             <FaRegClock className="text-rose-500" />
                             <span>Tasks Procrastinated</span>
                         </div>
-                        <span className="font-semibold">{mockUser.taskProcrastinated}</span>
+                        <span className="font-semibold">{user.taskProcrastinated}</span>
                     </div>
                 </div>
             </div>

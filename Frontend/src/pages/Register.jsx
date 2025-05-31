@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import { Zap } from 'lucide-react';
 import open from '../picture/open.png';
 import close from '../picture/close.png';
+import { register as apiRegister } from '../services/api';
 
 import { NavLink, useNavigate } from 'react-router-dom';
 
@@ -36,17 +37,22 @@ const Register = () => {
             return;
         }
 
-        // Simulated register API logic (replace this with your actual function)
-        const success = true;
-        const error = 'Registration failed. Try again.';
-
-        if (success) {
-            alert('Account created – please log in.');
-            navigate('/login');
-        } else {
-            setErrorMsg(error);
+        try {
+            const res = await apiRegister(username, password);
+            if (res.success) {
+                alert('Account created – please log in.');
+                navigate('/login');
+            } else {
+                setErrorMsg(res.msg || 'Registration failed. Try again.');
+            }
+        } catch (err) {
+            setErrorMsg('Registration failed. Try again.');
         }
     };
+
+    useEffect(() => {
+        document.title = "Procrastivity - Register";
+    }, [])
 
     return (
         <div className="relative mt-20 flex flex-col items-center justify-center">

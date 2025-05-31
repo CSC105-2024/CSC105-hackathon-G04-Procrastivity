@@ -3,16 +3,16 @@ generator client {
   output   = "../src/generated/prisma"
 }
 
-// datasource db {
-//   provider = "sqlite"
-//   url      = env("DATABASE_URL")
-// }
-
 datasource db {
-  provider          = "mysql"
-  url               = env("DATABASE_URL")
-  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
+
+// datasource db {
+//  provider          = "mysql"
+//  url               = env("DATABASE_URL")
+//  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+// }
 
 model User {
   userId             Int     @id @default(autoincrement())

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,6 +6,8 @@ import { z } from 'zod';
 import { Zap } from 'lucide-react';
 import open from '../picture/open.png';
 import close from '../picture/close.png';
+import { login as apiLogin } from '../services/api';
+import { useUser } from '../contexts/UserContext';
 
 const userSchema = z.object({
     username: z.string().min(1, 'Username is required'),
@@ -15,9 +17,14 @@ const userSchema = z.object({
 
 const Login = () => {
     const navigate = useNavigate();
+    const { setUser } = useUser();
     const [loginError, setLoginError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+
+    useEffect(() => {
+        document.title = "Procrastivity - Login";
+    }, [])
 
     const {
         register,
@@ -35,7 +42,13 @@ const Login = () => {
         setIsLoading(true);
 
         try {
-            // Add your login logic here
+            const res = await apiLogin(data.username, data.password);
+            if (res.success) {
+                setUser(res.data);
+                navigate('/');
+            } else {
+                setLoginError(res.msg || 'Login failed.');
+            }
         } catch (err) {
             setLoginError('An unexpected error occurred. Please try again.');
             console.error(err);

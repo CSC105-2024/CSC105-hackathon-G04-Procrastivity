@@ -1,57 +1,38 @@
 import React, { useState, useRef, useEffect } from "react";
 import { GiPodium } from "react-icons/gi";
 import { FaCheckCircle, FaRegClock, FaTrophy } from "react-icons/fa";
+import { useUser } from '../contexts/UserContext';
+import { getTasks, createTask, updateTask, deleteTask, updateSubTask, procrastinateTask } from '../services/api';
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
+    const { user, loading } = useUser();
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const navigate = useNavigate ? useNavigate() : () => {};
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [expandedTaskId, setExpandedTaskId] = useState(null);
-    const [taskList, setTaskList] = useState([
-        {
-            taskId: 2,
-            title: "Write an essay",
-            category: "",
-            completed: false,
-            procrastinated: false,
-            dueDate: "06/04/2025",
-            dueIn: 10,
-            userId: 1,
-            subTask: [
-                {
-                    subTaskId: 7,
-                    title: "Dim the lights 30 minutes before bed.",
-                    completed: false,
-                    dueDate: "06/04/2025",
-                    dueIn: 10,
-                    mainTaskId: 2,
-                },
-                {
-                    subTaskId: 8,
-                    title: "Try reading a physical book for 20 minutes before bed.",
-                    completed: false,
-                    dueDate: "06/04/2025",
-                    dueIn: 10,
-                    mainTaskId: 2,
-                },
-            ],
-        },
-    ]);
-
-    const mockUser = {
-        userId: 1,
-        username: "John Salapao",
-        password: "b1",
-        profilePicture: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80",
-        maxXp: 40,
-        currentXp: 23,
-        rank: "Bronze",
-        maxRank: false,
-        taskCompleted: 0,
-        taskProcrastinated: 0,
-    };
-
+    const [taskList, setTaskList] = useState([]);
+    const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
+    const [newTask, setNewTask] = useState({ title: '', category: '', dueDate: '' });
     const dropdownRef = useRef(null);
     const categories = ["Personal", "Study", "Errands", "Health", "Finance"];
+
+    useEffect(() => {
+        document.title = "Procrastivity - Home";
+    }, [])
+
+    useEffect(() => {
+        if (!loading && !user) navigate('/login');
+    }, [user, loading, navigate]);
+
+    useEffect(() => {
+        if (user) {
+            getTasks(user.userId, selectedCategory).then(res => {
+                if (res.success) setTaskList(res.data);
+            });
+        }
+    }, [user, selectedCategory]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -63,56 +44,49 @@ const Home = () => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const handleProcrastinate = (taskId) => {
-        setTaskList(prev =>
-            prev.map(task =>
-                task.taskId === taskId
-                    ? { ...task, procrastinated: true }
-                    : task
-            )
-        );
+    const handleProcrastinate = async (taskId) => {
+        await procrastinateTask(taskId);
+        // Refetch tasks from backend to get new subtasks
+        if (user) {
+            const res = await getTasks(user.userId, selectedCategory);
+            if (res.success) setTaskList(res.data);
+        }
         setExpandedTaskId(taskId);
     };
 
-
-    const toggleMainTaskComplete = (taskId) => {
-        setTaskList((prev) =>
-            prev.map((task) => {
-                if (task.taskId === taskId) {
-                    const newCompletedState = !task.completed;
-                    const updatedSubTasks = task.subTask?.map((sub) => ({
-                        ...sub,
-                        completed: newCompletedState,
-                    })) || [];
-
-                    return {
-                        ...task,
-                        completed: newCompletedState,
-                        subTask: updatedSubTasks,
-                    };
-                }
-                return task;
-            })
-        );
+    const toggleMainTaskComplete = async (taskId) => {
+        const task = taskList.find(t => t.taskId === taskId);
+        await updateTask(taskId, { completed: !task.completed });
+        if (user) {
+            const res = await getTasks(user.userId, selectedCategory);
+            if (res.success) setTaskList(res.data);
+        }
     };
 
-    const toggleSubtaskComplete = (taskId, subTaskId) => {
-        setTaskList((prev) =>
-            prev.map((task) => {
-                if (task.taskId === taskId) {
-                    const updatedSubTasks = task.subTask.map((sub) =>
-                        sub.subTaskId === subTaskId
-                            ? { ...sub, completed: !sub.completed }
-                            : sub
-                    );
-                    return { ...task, subTask: updatedSubTasks };
-                }
-                return task;
-            })
-        );
+    const toggleSubtaskComplete = async (taskId, subTaskId) => {
+        const task = taskList.find(t => t.taskId === taskId);
+        const sub = task.subTask.find(s => s.subTaskId === subTaskId);
+        await updateSubTask(subTaskId, { completed: !sub.completed });
+        setTaskList(prev => prev.map(t => t.taskId === taskId ? { ...t, subTask: t.subTask.map(s => s.subTaskId === subTaskId ? { ...s, completed: !s.completed } : s) } : t));
     };
-    const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
 
+    const handleCreateTask = async (e) => {
+        e.preventDefault();
+        const res = await createTask({ ...newTask, userId: user.userId });
+        if (res.success) {
+            setTaskList(prev => [...prev, res.data]);
+            setShowCreateTaskModal(false);
+            setNewTask({ title: '', category: '', dueDate: '' });
+        }
+    };
+
+    const handleDeleteTask = async (taskId) => {
+        await deleteTask(taskId);
+        if (user) {
+            const res = await getTasks(user.userId, selectedCategory);
+            if (res.success) setTaskList(res.data);
+        }
+    };
 
     return (
         <>
@@ -145,8 +119,14 @@ const Home = () => {
                                 type="text"
                                 placeholder="e.g., Write an essay"
                                 className="w-full border px-3 py-2 rounded mb-3"
+                                value={newTask.title}
+                                onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
                             />
-                            <select className="w-full border px-3 py-2 rounded mb-3">
+                            <select
+                                className="w-full border px-3 py-2 rounded mb-3"
+                                value={newTask.category}
+                                onChange={(e) => setNewTask({ ...newTask, category: e.target.value })}
+                            >
                                 <option>Select a category</option>
                                 {categories.map((category) => (
                                     <option key={category}>{category}</option>
@@ -155,8 +135,13 @@ const Home = () => {
                             <input
                                 type="date"
                                 className="w-full border px-3 py-2 rounded mb-5"
+                                value={newTask.dueDate}
+                                onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
                             />
-                            <button className="w-full bg-black text-white py-2 rounded hover:bg-gray-900 transition">
+                            <button
+                                className="w-full bg-black text-white py-2 rounded hover:bg-gray-900 transition"
+                                onClick={handleCreateTask}
+                            >
                                 Add Task
                             </button>
                         </div>
@@ -236,28 +221,28 @@ const Home = () => {
                                     <FaTrophy className="text-yellow-500" />
                                     <span>XP points</span>
                                 </div>
-                                <span className="font-semibold">{mockUser.currentXp}</span>
+                                <span className="font-semibold">{user?.currentXp}</span>
                             </div>
                             <div className="flex items-center justify-between p-3 bg-gray-100 rounded-xl">
                                 <div className="flex items-center space-x-2">
                                     <FaTrophy className="text-black" />
                                     <span>Current rank</span>
                                 </div>
-                                <span className="font-semibold">{mockUser.rank}</span>
+                                <span className="font-semibold">{user?.rank}</span>
                             </div>
                             <div className="flex items-center justify-between p-3 bg-green-50 rounded-xl">
                                 <div className="flex items-center space-x-2">
                                     <FaCheckCircle className="text-green-500" />
                                     <span>Tasks Completed</span>
                                 </div>
-                                <span className="font-semibold">{mockUser.taskCompleted}</span>
+                                <span className="font-semibold">{user?.taskCompleted}</span>
                             </div>
                             <div className="flex items-center justify-between p-3 bg-rose-50 rounded-xl">
                                 <div className="flex items-center space-x-2">
                                     <FaRegClock className="text-rose-500" />
                                     <span>Tasks Procrastinated</span>
                                 </div>
-                                <span className="font-semibold">{mockUser.taskProcrastinated}</span>
+                                <span className="font-semibold">{user?.taskProcrastinated}</span>
                             </div>
                         </div>
                     </div>
@@ -322,7 +307,10 @@ const Home = () => {
                                     </button>
 
 
-                                    <button className="px-4 py-2 rounded-full bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition flex items-center gap-1">
+                                    <button
+                                        className="px-4 py-2 rounded-full bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition flex items-center gap-1"
+                                        onClick={() => handleDeleteTask(task.taskId)}
+                                    >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
                                             className="w-4 h-4"
@@ -343,7 +331,7 @@ const Home = () => {
                             </div>
 
                             {/* Subtasks */}
-                            {task.procrastinated && expandedTaskId === task.taskId && task.subTask?.map((sub) => (
+                            {task.procrastinated && task.subTask?.map((sub) => (
                                 <div
                                     key={sub.subTaskId}
                                     className="ml-10 mt-4 p-4 border rounded-lg shadow bg-gray-50 max-w-md flex flex-col justify-between lg:ml-80"

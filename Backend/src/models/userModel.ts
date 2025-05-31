@@ -115,3 +115,14 @@ export const gainXp = async (body: any) => {
 
     return user;
 }
+
+export const login = async (body: { username: string, password: string }) => {
+    const user = await db.user.findFirst({
+        where: {
+            username: body.username,
+            password: body.password,
+        },
+    });
+    return user;
+}
+

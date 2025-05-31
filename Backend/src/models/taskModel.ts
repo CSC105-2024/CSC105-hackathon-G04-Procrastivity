@@ -41,7 +41,7 @@ export const createTask = async(body: any)=> {
 
 export const getTask = async(body: any)=> {
     //update each task and subtask "duein"
-    const t = await db.task.findMany({
+    const tasks = await db.task.findMany({
         where: {
             userId: body.userId
         },
@@ -58,7 +58,7 @@ export const getTask = async(body: any)=> {
         }
     })
 
-    for(const ele of t) {
+    for(const ele of tasks) {
         await db.task.update({
             where: {
                 taskId: ele.taskId
@@ -79,6 +79,7 @@ export const getTask = async(body: any)=> {
         }
     }
 
+    // Always re-fetch the latest tasks and subtasks after updates
     if(categories.indexOf(body.category) !== -1) {
         const task = await db.task.findMany({
             where: {
@@ -328,3 +329,4 @@ export const deleteTask = async(body: any)=> {
 
     return task;
 }
+
