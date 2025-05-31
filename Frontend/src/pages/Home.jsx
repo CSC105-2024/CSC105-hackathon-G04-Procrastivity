@@ -117,10 +117,10 @@ const Home = () => {
     return (
         <>
             {/* Top Controls */}
-            <div className="flex justify-between items-center mt-5 mx-5 relative lg:mt-10 lg:px-85" >
+            <div className="flex justify-between items-center mt-5 mx-5 relative lg:mt-10 lg:pr-85 lg:pl-107" >
                 <button
                     onClick={() => setShowCreateTaskModal(true)}
-                    className="px-[25px] py-[12px] rounded-[4px] cursor-pointer text-[13px] uppercase tracking-[1.5px] transition-all duration-300 ease-in-out font-normal border border-black text-black hover:bg-black hover:text-white lg:ml-5"
+                    className="px-[25px] lg:px-[42px] py-[12px] lg:py-[16px] rounded-[4px] cursor-pointer text-[13px] uppercase tracking-[1.5px] transition-all duration-300 ease-in-out font-normal border border-black text-black hover:bg-black hover:text-white"
                 >
                     Add new Task
                 </button>
@@ -167,7 +167,8 @@ const Home = () => {
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 24 24"
-                        className="h-7 w-7 text-black transition-transform group-hover:rotate-[-15deg]"
+                        className="h-7 lg:h-12 w-7 lg:w-12 text-black transition-transform group-hover:rotate-[-15deg]"
+                        onClick={() => setIsDropdownOpen((prev) => !prev)}
                     >
                         <path d="M0 0h24v24H0z" fill="none" />
                         <path d="M14 14v6l-4 2v-8L4 5V3h16v2l-6 9zM6.404 5L12 13.394 17.596 5H6.404z" />
@@ -175,7 +176,7 @@ const Home = () => {
                     <button
                         type="button"
                         onClick={() => setIsDropdownOpen((prev) => !prev)}
-                        className="inline-flex justify-center rounded-md border border-gray-300 bg-white pl-3 pr-2 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                        className="inline-flex justify-center rounded-md border border-gray-300 bg-white pl-3 lg:pl-4 pr-2 lg:pr-3 py-2 lg:py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
                         aria-haspopup="true"
                         aria-expanded={isDropdownOpen}
                     >
@@ -192,7 +193,7 @@ const Home = () => {
                     </button>
 
                     {isDropdownOpen && (
-                        <div className="absolute right-0 mt-68.5 w-56 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-50 lg:mr-84">
+                        <div className="absolute right-0 mt-68.5 lg:mt-70.5 w-56 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-50 lg:mr-84">
                             <div className="py-1">
                                 <button
                                     onClick={() => {
@@ -222,7 +223,7 @@ const Home = () => {
                 </div>
             </div>
 
-            <div className="flex flex justify-center flex-row">
+            <div className="flex justify-center flex-row">
                 {/* Sidebar */}
                 <div className="hidden lg:flex mt-10 w-[max-content] h-[max-content]">
                     <div className="w-80 ml-10 px-10 p-6 bg-white rounded-3xl shadow-xl border">
@@ -262,10 +263,15 @@ const Home = () => {
                         </div>
                     </div>
                 </div>
-
-                {/* Main Content */}
                 <div className="flex flex-col gap-4 mt-10.25 ml-5 mr-5">
-                    {taskList.map((task) => (
+                    {taskList.length === 0 ? (
+                        <div className="border-dashed border-2 border-gray-300 rounded-xl p-10 flex w-88 lg:w-200 flex-col items-center justify-center text-center">
+                            <div className="text-gray-400 text-4xl mb-4">📋</div>
+                            <h2 className="text-xl font-semibold text-gray-700">No tasks yet!</h2>
+                            <p className="text-gray-500 mt-1">Add a task to get started</p>
+                        </div>
+                    ) : (
+                        taskList.map((task) => (
                         <div key={task.taskId}>
                             {/* Main Task */}
                             <div className="p-5 border rounded-xl shadow-sm bg-white w-88 lg:w-200">
@@ -374,9 +380,9 @@ const Home = () => {
                                     </div>
                                 </div>
                             ))}
-
                         </div>
-                    ))}
+                        ))
+                    )}
                 </div>
             </div>
         </>
