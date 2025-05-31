@@ -12,7 +12,11 @@ export const UserProvider = ({ children }) => {
   useEffect(() => {
     (async () => {
       try {
-        const res = await getProfile();
+        // Try to get userId from localStorage or session (if you store it after login)
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+        const userId = storedUser?.userId;
+        if (!userId) throw new Error('No userId');
+        const res = await getProfile(userId);
         if (res.success) setUser(res.data);
       } catch (e) {
         setUser(null);
@@ -23,8 +27,8 @@ export const UserProvider = ({ children }) => {
   }, []);
 
   const logout = async () => {
-    await apiLogout();
     setUser(null);
+    localStorage.removeItem('user');
   };
 
   return (
