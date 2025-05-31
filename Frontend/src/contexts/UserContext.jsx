@@ -12,7 +12,6 @@ export const UserProvider = ({ children }) => {
   useEffect(() => {
     (async () => {
       try {
-        // Try to get userId from localStorage or session (if you store it after login)
         const storedUser = JSON.parse(localStorage.getItem('user'));
         const userId = storedUser?.userId;
         if (!userId) throw new Error('No userId');
