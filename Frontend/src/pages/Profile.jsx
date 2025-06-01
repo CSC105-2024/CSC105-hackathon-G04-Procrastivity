@@ -15,7 +15,6 @@ const ranks = ["iron", "bronze", "silver", "gold", "platinum"];
 
 
 const getRankImage = (rank) => {
-    console.log(rank)
     switch (rank.toLowerCase()) {
         case "iron": return iron;
         case "bronze": return bronze;
@@ -73,6 +72,11 @@ const Profile = () => {
         const img = await result.json();
         const image = img.url
 
+        await userService.updateProfilePicture({
+            userId: user.userId,
+            profilePicture: image,
+        })
+
         setSaving(true);
         setSaveStatus('Processing image...');
 
@@ -108,6 +112,11 @@ const Profile = () => {
 
         // Also update localStorage to persist the change
         localStorage.setItem('user', JSON.stringify(updatedUser));
+
+        userService.updateProfile({
+            userId: user.userId,
+            username: newName
+        })
     };
 
     const handleSaveProfile = async () => {

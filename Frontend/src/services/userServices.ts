@@ -6,15 +6,13 @@ export const userService = {
         return response.data;
     },
 
-    updateProfile: async (userData) => {
-        const response = await API.put('/users/profile', userData);
+    updateProfile: async (body) => {
+        const response = await API.patch('/user/updateUsername', body);
         return response.data;
     },
 
-    updateProfilePicture: async (profilePicture) => {
-        const response = await API.patch('/users/profile-picture', {
-            profilePicture
-        });
+    updateProfilePicture: async (body) => {
+        const response = await API.patch('/user/updateProfilePicture', body);
         return response.data;
     },
 
