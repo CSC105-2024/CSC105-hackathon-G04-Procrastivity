@@ -38,7 +38,6 @@ const Profile = () => {
         document.title = "Procrastivity - Profile";
     }, []);
 
-    // Update local state when user data changes
     useEffect(() => {
         if (user) {
             setProfilePic(user.profilePicture || '');
@@ -84,15 +83,12 @@ const Profile = () => {
         reader.onloadend = () => {
             const newProfilePic = reader.result;
 
-            // Update local state immediately
             setProfilePic(newProfilePic);
 
 
-            // Update user context immediately for real-time UI update
             const updatedUser = { ...user, profilePicture: newProfilePic };
             setUser(updatedUser);
 
-            // Also update localStorage to persist the change
             localStorage.setItem('user', JSON.stringify(updatedUser));
 
             setSaving(false);
@@ -106,11 +102,9 @@ const Profile = () => {
         const newName = e.target.value;
         setDisplayName(newName);
 
-        // Update user context immediately for real-time display
         const updatedUser = { ...user, username: newName };
         setUser(updatedUser);
 
-        // Also update localStorage to persist the change
         localStorage.setItem('user', JSON.stringify(updatedUser));
 
         userService.updateProfile({
@@ -136,7 +130,6 @@ const Profile = () => {
                 profilePicture: profilePic
             };
 
-            // Update context and localStorage immediately
             setUser(updatedUser);
             localStorage.setItem('user', JSON.stringify(updatedUser));
 
@@ -144,14 +137,11 @@ const Profile = () => {
             setSaveStatus('Profile updated!');
             setTimeout(() => setSaveStatus(''), 2000);
 
-            // Optional: If you want to sync with backend later, you can call refreshUser
-            // await refreshUser();
         } catch (error) {
             console.error('Error saving profile:', error);
             setSaveStatus('Error saving profile');
             setTimeout(() => setSaveStatus(''), 3000);
 
-            // Revert changes on error
             setDisplayName(user?.username || '');
             setProfilePic(user?.profilePicture || '');
         } finally {
@@ -160,7 +150,6 @@ const Profile = () => {
     };
 
     const handleCancelEdit = () => {
-        // Reset to original values
         setDisplayName(user.username || '');
         setProfilePic(user.profilePicture || '');
         setIsEditing(false);
@@ -344,18 +333,7 @@ const Profile = () => {
     );
 };
 
-// Utility function for debouncing
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
+
 
 export default Profile;
 
