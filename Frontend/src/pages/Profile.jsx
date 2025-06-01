@@ -71,6 +71,7 @@ const Profile = () => {
         );
 
         const img = await result.json();
+        const image = img.url
 
         setSaving(true);
         setSaveStatus('Processing image...');
