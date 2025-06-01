@@ -8,47 +8,14 @@ import silver from '../picture/silver.png';
 import gold from '../picture/gold.png';
 import platinum from '../picture/platinum.png';
 import { useUser } from '../contexts/UserContext';
+import { userService } from "../services/userServices.js";
 
 const ranks = ["iron", "bronze", "silver", "gold", "platinum"];
 
-const rankThresholds = [
-    { name: "Iron", maxXp: 0 },
-    { name: "Bronze", maxXp: 40 },
-    { name: "Silver", maxXp: 160 },
-    { name: "Gold", maxXp: 640 },
-    { name: "Platinum", maxXp: 2560 },
-];
 
-const getRankInfo = (totalXp) => {
-    for (let i = 0; i < rankThresholds.length - 1; i++) {
-        const current = rankThresholds[i];
-        const next = rankThresholds[i + 1];
-
-        if (totalXp < next.maxXp) {
-            return {
-                currentRank: current.name.toLowerCase(),
-                currentXp: totalXp - current.maxXp,
-                maxXp: next.maxXp - current.maxXp,
-                nextRank: next.name.toLowerCase(),
-                xpToNext: next.maxXp - totalXp,
-                maxRank: false,
-            };
-        }
-    }
-
-    // Max rank case
-    const max = rankThresholds[rankThresholds.length - 1];
-    return {
-        currentRank: max.name.toLowerCase(),
-        currentXp: max.maxXp,
-        maxXp: 0,
-        nextRank: null,
-        xpToNext: null,
-        maxRank: true,
-    };
-};
 
 const getRankImage = (rank) => {
+    console.log(rank)
     switch (rank.toLowerCase()) {
         case "iron": return iron;
         case "bronze": return bronze;
@@ -86,11 +53,24 @@ const Profile = () => {
 
     if (loading || !user) return null;
 
-    const rankInfo = getRankInfo(user.xp || 0);
-
-    const handleImageChange = (e) => {
+    const handleImageChange = async(e) => {
         const file = e.target.files[0];
         if (!file) return;
+
+        const data = new FormData();
+        data.append("file", file);
+        data.append("upload_preset", "upload");
+        data.append("cloud_name", "drwqidr6o");
+
+        const result = await fetch(
+            "https://api.cloudinary.com/v1_1/drwqidr6o/image/upload",
+            {
+                method: "POST",
+                body: data
+            }
+        );
+
+        const img = await result.json();
 
         setSaving(true);
         setSaveStatus('Processing image...');
@@ -101,6 +81,7 @@ const Profile = () => {
 
             // Update local state immediately
             setProfilePic(newProfilePic);
+
 
             // Update user context immediately for real-time UI update
             const updatedUser = { ...user, profilePicture: newProfilePic };
@@ -210,17 +191,15 @@ const Profile = () => {
                     <div className="flex flex-col items-center">
                         <div className="relative flex gap-10 items-center justify-center mb-2 transform -translate-y-2">
                             <img
-                                src={getRankImage(rankInfo.currentRank)}
-                                alt={rankInfo.currentRank}
+                                src={getRankImage(user.rank)}
+                                alt={user.rank}
                                 className="w-16 h-16 object-contain"
                             />
-                            {rankInfo.nextRank && (
-                                <img
-                                    src={getRankImage(rankInfo.nextRank)}
-                                    alt={rankInfo.nextRank}
-                                    className="w-16 h-16 object-contain"
-                                />
-                            )}
+                            <img
+                                src={user.isMax? getRankImage(user.rank) : getRankImage(ranks[ranks.indexOf(user.rank.toLowerCase())+1])}
+                                alt={user.rank}
+                                className="w-16 h-16 object-contain"
+                            />
                         </div>
 
                         <div className="w-full transform -translate-y-6">
@@ -228,16 +207,16 @@ const Profile = () => {
                             <div className="mt-6">
                                 <div className="flex justify-between text-xs mb-1">
                                     <span className="capitalize">{user?.rank}</span>
-                                    <span>{user?.xp} / {user?.maxXp} XP</span>
+                                    <span>{user?.currentXp} / {user?.maxXp} XP</span>
                                 </div>
                                 <div className="bg-gray-200 rounded-full h-4 overflow-hidden">
                                     <div
                                         className="bg-green-400 h-full transition-all duration-300"
-                                        style={{ width: `${user?.maxXp ? Math.min(100, (user?.xp / user?.maxXp) * 100) : 0}%` }}
+                                        style={{ width: `${user?.maxXp ? Math.min(100, (user?.currentXp / user?.maxXp) * 100) : 0}%` }}
                                     />
                                 </div>
                                 <div className="text-xs text-right mt-1">
-                                    {user?.maxRank ? 'Max Rank' : `${user?.maxXp - user?.xp} XP to next rank`}
+                                    {user?.maxRank ? 'Max Rank' : `${user?.maxXp - user?.currentXp} XP to next rank`}
                                 </div>
                             </div>
                         </div>

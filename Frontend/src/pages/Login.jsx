@@ -101,18 +101,6 @@ const Login = () => {
                         )}
                     </div>
 
-                    <div className="flex items-center">
-                        <input
-                            type="checkbox"
-                            id="rememberMe"
-                            {...register('rememberMe')}
-                            className="w-4 h-4 text-black border-gray-300 rounded focus:ring-black"
-                        />
-                        <label htmlFor="rememberMe" className="ml-2 text-sm text-gray-600">
-                            Remember me
-                        </label>
-                    </div>
-
                     {loginError && (
                         <p className="text-sm text-red-500 text-center">{loginError}</p>
                     )}
