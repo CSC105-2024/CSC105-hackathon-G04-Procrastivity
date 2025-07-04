@@ -4,7 +4,7 @@ import { GoogleGenAI } from "@google/genai";
 import * as userModel from "../models/userModel.js"
 import * as subTaskModel from "../models/subTaskModel.js"
 
-const ai = new GoogleGenAI({ apiKey: "AIzaSyDgtUI2mGUIOLfp5M5UIU3IHYHCJmI5uYU" });
+const ai = new GoogleGenAI({ apiKey: "{insert API key}" });
 
 const categories = ["work", "personal", "study", "errands", "health", "finance"]
 
